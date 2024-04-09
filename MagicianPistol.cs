@@ -8,23 +8,22 @@ using UnityEngine;
 
 namespace OrdinaryMagicianItems
 {
-    public class MagicianPistol : GunBehaviour
+    public class MagicianPistol
     {
         public static void Init()
         {
             Gun gun = ETGMod.Databases.Items.NewGun("Magician Pistol", "nerfed_witch_pistol");
             Game.Items.Rename("outdated_gun_mods:magician_pistol", "spapi:magician_pistol");
-            gun.gameObject.AddComponent<MagicianPistol>();
             GunExt.SetShortDescription(gun, "Fancy Schmancy");
             GunExt.SetLongDescription(gun, "Well this is just a really messy attempt at a Witch Pistol.\nThe shoddy craftsmanship makes it particularly awkward to reload, but you'll sure as hell look cool doing it!\n\n" +
                 "The \"Magic\" part of this weapon is purely for cosmetic purposes, it's really just a standard magnum.");
             GunExt.AddProjectileModuleFrom(gun, "klobb", true, false);
             gun.TransformToTargetGun(PickupObjectDatabase.GetById(145) as Gun);
             GunExt.SetupSprite(gun, null, "nerfed_witch_pistol_idle_001", 16);
-            Projectile projectile = Instantiate((PickupObjectDatabase.GetById(145) as Gun).DefaultModule.projectiles[0]);
+            Projectile projectile = UnityEngine.Object.Instantiate((PickupObjectDatabase.GetById(145) as Gun).DefaultModule.projectiles[0]);
             projectile.gameObject.SetActive(false);
             FakePrefab.MarkAsFakePrefab(projectile.gameObject);
-            DontDestroyOnLoad(projectile);
+            UnityEngine.Object.DontDestroyOnLoad(projectile);
             projectile.CanTransmogrify = false;
             projectile.ChanceToTransmogrify = -1f;
             gun.reloadTime = 1.6f;

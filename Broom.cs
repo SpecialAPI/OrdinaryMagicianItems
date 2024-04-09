@@ -226,7 +226,7 @@ namespace OrdinaryMagicianItems
 
 		public override void OnDestroy()
 		{
-			OnDestroy();
+			base.OnDestroy();
 			if(LastOwner != null && m_callbacksInitialized)
 			{
 				DeinitializeCallbacks(LastOwner);
