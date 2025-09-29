@@ -74,7 +74,7 @@ namespace ItemAPI
 
             sprite.SetUpSpeculativeRigidbody(hitboxOffset, hitBoxSize).CollideWithOthers = false;
             prefab.AddComponent<tk2dSpriteAnimator>();
-            prefab.AddComponent<AIAnimator>();
+            prefab.AddComponent<AIAnimator>().OtherVFX = [];
 
 
             //setup health haver
