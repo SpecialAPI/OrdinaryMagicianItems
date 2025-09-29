@@ -12,7 +12,7 @@ using BepInEx;
 
 namespace OrdinaryMagicianItems
 {
-    [BepInPlugin("spapi.etg.ordinarymagicianitems", "Ordinary Magician Items", "1.0.5")]
+    [BepInPlugin("spapi.etg.ordinarymagicianitems", "Ordinary Magician Items", "1.0.7")]
     [BepInDependency(ETGModMainBehaviour.GUID)]
     public class Plugin : BaseUnityPlugin
     {
