@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Alexandria.ItemAPI;
+using MonoMod.RuntimeDetour;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
-using Alexandria.ItemAPI;
-using MonoMod.RuntimeDetour;
-using System.Globalization;
 
 namespace OrdinaryMagicianItems
 {
@@ -33,48 +34,56 @@ namespace OrdinaryMagicianItems
 				typeof(ShopItemController).GetMethod("Interact"),
 				typeof(Broom).GetMethod("ShopItemInteractHook")
 			);
-			GameObject broomObj = new GameObject("BroomAttachment");
-			ItemBuilder.AddSpriteToObject(broomObj.name, "OrdinaryMagicianItems/Resources/broom_obj/broom_front", broomObj);
+
+			var broomObj = new GameObject("BroomAttachment");
+			broomObj.SetActive(false);
+			FakePrefab.MakeFakePrefab(broomObj);
 			DontDestroyOnLoad(broomObj);
-			tk2dBaseSprite sprite = broomObj.GetComponent<tk2dBaseSprite>();
-			tk2dSpriteAnimator animator = broomObj.AddComponent<tk2dSpriteAnimator>();
-			animator.Library = broomObj.AddComponent<tk2dSpriteAnimation>();
-			List<int> ids = new List<int>
+            item.prefabToAttachToPlayer = broomObj;
+
+            var animations = new string[]
 			{
-				sprite.spriteId,
-				SpriteBuilder.AddSpriteToCollection("OrdinaryMagicianItems/Resources/broom_obj/broom_back", sprite.Collection),
-				SpriteBuilder.AddSpriteToCollection("OrdinaryMagicianItems/Resources/broom_obj/broom_front_left", sprite.Collection),
-				SpriteBuilder.AddSpriteToCollection("OrdinaryMagicianItems/Resources/broom_obj/broom_front_right", sprite.Collection),
-				SpriteBuilder.AddSpriteToCollection("OrdinaryMagicianItems/Resources/broom_obj/broom_back_right", sprite.Collection),
-				SpriteBuilder.AddSpriteToCollection("OrdinaryMagicianItems/Resources/broom_obj/broom_back_left", sprite.Collection)
+                "broom_front",
+                "broom_back",
+				"broom_front_left",
+				"broom_front_right",
+				"broom_back_right",
+				"broom_back_left"
 			};
-			List<tk2dSpriteAnimationClip> clips = new List<tk2dSpriteAnimationClip>();
-			foreach(int id in ids)
-            {
-				tk2dSpriteDefinition def = sprite.Collection.spriteDefinitions[id];
-				Vector2 defOffset = def.name == "broom_back_left" ? new Vector2(0f, -0.0625f) : Vector2.zero;
-				MagicianPistol.ConstructOffsetsFromAnchor(def, tk2dBaseSprite.Anchor.MiddleCenter, null, false, false);
-				MagicianPistol.MakeOffset(def, defOffset, false);
-				int id2 = SpriteBuilder.AddSpriteToCollection("OrdinaryMagicianItems/Resources/broom_obj/" + def.name + "2", sprite.Collection);
-				tk2dSpriteDefinition def2 = sprite.Collection.spriteDefinitions[id2];
-				MagicianPistol.ConstructOffsetsFromAnchor(def2, tk2dBaseSprite.Anchor.MiddleCenter, null, false, false);
-				MagicianPistol.MakeOffset(def2, defOffset + new Vector2(0f, -0.0625f), false);
-				tk2dSpriteAnimationFrame firstFrame = new tk2dSpriteAnimationFrame { spriteId = id, spriteCollection = sprite.Collection };
-				tk2dSpriteAnimationFrame secondFrame = new tk2dSpriteAnimationFrame { spriteId = id2, spriteCollection = sprite.Collection };
-				tk2dSpriteAnimationClip clip = new tk2dSpriteAnimationClip()
-				{
-					fps = 6,
-					frames = new tk2dSpriteAnimationFrame[] { firstFrame, secondFrame },
-					loopStart = 0,
-					maxFidgetDuration = 0f,
-					minFidgetDuration = 0f,
-					name = def.name,
-					wrapMode = tk2dSpriteAnimationClip.WrapMode.Loop
-				};
-				clips.Add(clip);
+			var clips = new tk2dSpriteAnimationClip[animations.Length];
+            var collection = SpriteBuilder.itemCollection;
+            for (var i = 0; i < animations.Length; i++)
+			{
+				var animName = animations[i];
+				var baseOffset = animName == "broom_back_left" ? new Vector2(0f, -0.0625f) : Vector2.zero;
+
+                var frame1SpriteID = SpriteBuilder.AddSpriteToCollection($"OrdinaryMagicianItems/Resources/broom_obj/{animName}", collection);
+				var def1 = collection.spriteDefinitions[frame1SpriteID];
+				def1.ConstructOffsetsFromAnchor(tk2dBaseSprite.Anchor.MiddleCenter, null, false, false);
+				def1.MakeOffset(baseOffset, false);
+                var frame1 = new tk2dSpriteAnimationFrame() { spriteId = frame1SpriteID, spriteCollection = collection };
+
+                var frame2SpriteID = SpriteBuilder.AddSpriteToCollection($"OrdinaryMagicianItems/Resources/broom_obj/{animName}2", collection);
+				var def2 = collection.spriteDefinitions[frame2SpriteID];
+                def2.ConstructOffsetsFromAnchor(tk2dBaseSprite.Anchor.MiddleCenter, null, false, false);
+				def2.MakeOffset(baseOffset + new Vector2(0f, -0.0625f), false);
+                var frame2 = new tk2dSpriteAnimationFrame() { spriteId = frame2SpriteID, spriteCollection = collection };
+
+                clips[i] = new()
+                {
+                    fps = 6,
+                    frames = [frame1, frame2],
+                    loopStart = 0,
+                    maxFidgetDuration = 0f,
+                    minFidgetDuration = 0f,
+                    name = animName,
+                    wrapMode = tk2dSpriteAnimationClip.WrapMode.Loop
+                };
 			}
-			animator.Library.clips = clips.ToArray();
-			item.prefabToAttachToPlayer = broomObj;
+            var sprite = tk2dSprite.AddComponent(broomObj, collection, clips[0].frames[0].spriteId);
+            var animator = broomObj.AddComponent<tk2dSpriteAnimator>();
+            var library = animator.Library = broomObj.AddComponent<tk2dSpriteAnimation>();
+            library.clips = clips;
 		}
 
 		public void InitializeCallbacks(PlayerController player)
