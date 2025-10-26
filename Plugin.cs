@@ -31,6 +31,8 @@ namespace OrdinaryMagicianItems
 
         public void GMStart(GameManager man)
         {
+            ETGMod.Assets.SetupSpritesFromAssembly(typeof(Plugin).Assembly, "OrdinaryMagicianItems/Resources/MTGAPISpriteRoot");
+
             TwelveShotsSynergy                  = ETGModCompatibility.ExtendEnum<CustomSynergyType>(MOD_GUID, "TWELVE_SHOTS");
             CheatAgainstTheImpossibleSynergy    = ETGModCompatibility.ExtendEnum<CustomSynergyType>(MOD_GUID, "CHEAT_AGAINST_THE_IMPOSSIBLE");
             IncidentResolverKitSynergy          = ETGModCompatibility.ExtendEnum<CustomSynergyType>(MOD_GUID, "INCIDENT_RESOLVER_KIT");

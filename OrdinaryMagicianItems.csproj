@@ -320,9 +320,47 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle2_001.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_001.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_002.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_003.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_004.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_001.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_002.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_003.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_004.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_idle_001.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_001.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_002.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_003.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_004.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_005.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_006.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_007.jtk2d" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_008.jtk2d" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\Ammonomicon Encounter Icon Collection\mini_hakkero_idle2_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\Ammonomicon Encounter Icon Collection\nerfed_witch_pistol_idle_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle2_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_002.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_003.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\mini_hakkero_idle_004.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_002.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_003.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_fire_004.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_idle_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_001.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_002.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_003.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_004.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_005.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_006.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_007.png" />
+    <EmbeddedResource Include="Resources\MTGAPISpriteRoot\WeaponCollection\nerfed_witch_pistol_reload_008.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\BepInEx.Core.5.4.21\build\BepInEx.Core.targets" Condition="Exists('packages\BepInEx.Core.5.4.21\build\BepInEx.Core.targets')" />
