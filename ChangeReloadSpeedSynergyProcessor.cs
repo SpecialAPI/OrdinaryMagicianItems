@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ItemAPI;
 
 namespace OrdinaryMagicianItems
 {
@@ -31,7 +30,7 @@ namespace OrdinaryMagicianItems
 		}
 
 		public float SynergyReloadTime;
-		public string RequiredSynergy;
+		public CustomSynergyType RequiredSynergy;
 		private bool m_processed;
 		private Gun m_gun;
 		private float m_cachedReloadTime;

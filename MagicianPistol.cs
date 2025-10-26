@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gungeon;
-using ItemAPI;
+using Alexandria.ItemAPI;
 using UnityEngine;
 
 namespace OrdinaryMagicianItems
@@ -67,18 +67,18 @@ namespace OrdinaryMagicianItems
             }
             ChangeReloadSpeedSynergyProcessor processor = gun.gameObject.AddComponent<ChangeReloadSpeedSynergyProcessor>();
             processor.SynergyReloadTime = 1.2f;
-            processor.RequiredSynergy = "Twelve Shots";
+            processor.RequiredSynergy = Plugin.TwelveShotsSynergy;
             ETGMod.Databases.Items.Add(gun, null, "ANY");
-            AddDualWieldSynergyProcessor(gun.PickupObjectId, 145, "Twelve Shots");
+            AddDualWieldSynergyProcessor(gun.PickupObjectId, 145, Plugin.TwelveShotsSynergy);
         }
 
-        public static void AddDualWieldSynergyProcessor(int id1, int id2, string synergyName)
+        public static void AddDualWieldSynergyProcessor(int id1, int id2, CustomSynergyType synergy)
         {
-            AdvancedDualWieldSynergyProcessor dualWieldController = PickupObjectDatabase.GetById(id1).gameObject.AddComponent<AdvancedDualWieldSynergyProcessor>();
-            dualWieldController.SynergyNameToCheck = synergyName;
+            DualWieldSynergyProcessor dualWieldController = PickupObjectDatabase.GetById(id1).gameObject.AddComponent<DualWieldSynergyProcessor>();
+            dualWieldController.SynergyToCheck = synergy;
             dualWieldController.PartnerGunID = id2;
-            AdvancedDualWieldSynergyProcessor dualWieldController2 = PickupObjectDatabase.GetById(id2).gameObject.AddComponent<AdvancedDualWieldSynergyProcessor>();
-            dualWieldController2.SynergyNameToCheck = synergyName;
+            DualWieldSynergyProcessor dualWieldController2 = PickupObjectDatabase.GetById(id2).gameObject.AddComponent<DualWieldSynergyProcessor>();
+            dualWieldController2.SynergyToCheck = synergy;
             dualWieldController2.PartnerGunID = id1;
         }
 

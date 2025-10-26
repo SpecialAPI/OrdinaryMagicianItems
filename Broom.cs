@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using ItemAPI;
+using Alexandria.ItemAPI;
 using MonoMod.RuntimeDetour;
 using System.Globalization;
 
@@ -93,7 +93,7 @@ namespace OrdinaryMagicianItems
 
 		public void Shoot(PlayerController player, int i)
         {
-			if (player.PlayerHasActiveSynergy("Incident-Resolver kit")) 
+			if (player.HasActiveBonusSynergy(Plugin.IncidentResolverKitSynergy)) 
 			{
 				GameObject go = SpawnManager.SpawnProjectile(PickupObjectDatabase.GetById(508).GetComponent<Gun>().DefaultModule.projectiles[0].gameObject, player.specRigidbody.UnitCenter, Quaternion.Euler(0f, 0f, player.FacingDirection));
 				Projectile proj = go.GetComponent<Projectile>();
@@ -108,7 +108,7 @@ namespace OrdinaryMagicianItems
 		public void OnCombatEntered()
         {
 			if(PickedUp && LastOwner != null && LastOwner.CurrentRoom != null && LastOwner.CurrentRoom.GetActiveEnemies(Dungeonator.RoomHandler.ActiveEnemyType.All) != null && 
-				LastOwner.PlayerHasActiveSynergy("Incident-Resolver kit"))
+				LastOwner.HasActiveBonusSynergy(Plugin.IncidentResolverKitSynergy))
             {
 				foreach (AIActor aiactor in LastOwner.CurrentRoom.GetActiveEnemies(Dungeonator.RoomHandler.ActiveEnemyType.RoomClear))
 				{

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Gungeon;
-using ItemAPI;
+using Alexandria.ItemAPI;
 using UnityEngine;
 
 namespace OrdinaryMagicianItems
@@ -38,7 +38,7 @@ namespace OrdinaryMagicianItems
         public override void Update()
         {
             base.Update();
-            if (gun.RemainingActiveCooldownAmount <= 0f || gun.OwnerHasSynergy("Cheat against the Impossible"))
+            if (gun.RemainingActiveCooldownAmount <= 0f || gun.OwnerHasSynergy(Plugin.CheatAgainstTheImpossibleSynergy))
             {
                 gun.idleAnimation = normalIdleAnimation;
             }
@@ -50,7 +50,7 @@ namespace OrdinaryMagicianItems
             {
                 gun.PlayIdleAnimation();
             }
-            if (gun.OwnerHasSynergy("Cheat against the Impossible"))
+            if (gun.OwnerHasSynergy(Plugin.CheatAgainstTheImpossibleSynergy))
             {
                 gun.RemainingActiveCooldownAmount = Mathf.Max(0f, gun.RemainingActiveCooldownAmount - 10f * BraveTime.DeltaTime);
             }
