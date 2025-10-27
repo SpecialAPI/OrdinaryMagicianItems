@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="Broom.cs" />
     <Compile Include="ChangeReloadSpeedSynergyProcessor.cs" />
+    <Compile Include="ILTools.cs" />
     <Compile Include="MiniHakkero.cs" />
     <Compile Include="Shanghai.cs" />
     <Compile Include="MagicianPistol.cs" />

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Alexandria.ItemAPI;
-using Gungeon;
-using UnityEngine;
-using System.Reflection;
-using System.IO;
-using System.Collections;
+﻿using Alexandria.ItemAPI;
 using BepInEx;
+using Gungeon;
+using HarmonyLib;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using UnityEngine;
 
 namespace OrdinaryMagicianItems
 {
@@ -31,6 +32,7 @@ namespace OrdinaryMagicianItems
 
         public void GMStart(GameManager man)
         {
+            new Harmony(MOD_GUID).PatchAll();
             ETGMod.Assets.SetupSpritesFromAssembly(typeof(Plugin).Assembly, "OrdinaryMagicianItems/Resources/MTGAPISpriteRoot");
 
             TwelveShotsSynergy                  = ETGModCompatibility.ExtendEnum<CustomSynergyType>(MOD_GUID, "TWELVE_SHOTS");

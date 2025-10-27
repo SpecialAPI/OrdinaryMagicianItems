@@ -7,9 +7,13 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
+using HarmonyLib;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
 
 namespace OrdinaryMagicianItems
 {
+    [HarmonyPatch]
     public class Broom : PlayerItem
     {
         public static void Init()
@@ -26,14 +30,6 @@ namespace OrdinaryMagicianItems
             ItemBuilder.SetCooldownType(item, ItemBuilder.CooldownType.Timed, 1);
             item.consumable = false;
             item.quality = ItemQuality.SPECIAL;
-            Hook stealAttemptHook = new Hook(
-                typeof(BaseShopController).GetMethod("AttemptToSteal"),
-                typeof(Broom).GetMethod("StealAttemptHook")
-            );
-            Hook shopItemInteractHook = new Hook(
-                typeof(ShopItemController).GetMethod("Interact"),
-                typeof(Broom).GetMethod("ShopItemInteractHook")
-            );
 
             var broomObj = new GameObject("BroomAttachment");
             broomObj.SetActive(false);
@@ -135,21 +131,30 @@ namespace OrdinaryMagicianItems
             }
         }
 
-        public static void ShopItemInteractHook(Action<ShopItemController, PlayerController> orig, ShopItemController self, PlayerController player)
+        [HarmonyPatch(typeof(ShopItemController), nameof(ShopItemController.Interact))]
+        [HarmonyILManipulator]
+        public static void BroomSteal_Transpiler(ILContext ctx)
         {
-            CurrentBuyingPlayer = player;
-            orig(self, player);
-            CurrentBuyingPlayer = null;
+            var crs = new ILCursor(ctx);
+
+            if (!crs.JumpToNext(x => x.MatchCallOrCallvirt<BaseShopController>(nameof(BaseShopController.AttemptToSteal))))
+                return;
+
+            crs.Emit(OpCodes.Ldarg_0);
+            crs.Emit(OpCodes.Ldarg_1);
+            crs.EmitStaticDelegate(BroomSteal_ModifyAttemptToSteal);
         }
 
-        public static bool StealAttemptHook(Func<BaseShopController, bool> orig, BaseShopController self)
+        public static bool BroomSteal_ModifyAttemptToSteal(bool curr, ShopItemController shopItem, PlayerController player)
         {
-            if(CurrentBuyingPlayer != null && PassiveItem.IsFlagSetForCharacter(CurrentBuyingPlayer, typeof(Broom)))
-            {
-                self.NotifyStealFailed();
-                return true;
-            }
-            return orig(self);
+            if (player == null || !PassiveItem.IsFlagSetForCharacter(player, typeof(Broom)))
+                return curr;
+
+            if(shopItem.m_baseParentShop == null)
+                return curr;
+
+            shopItem.m_baseParentShop.NotifyStealFailed();
+            return true;
         }
 
         public override void DoEffect(PlayerController user)
@@ -251,6 +256,5 @@ namespace OrdinaryMagicianItems
         private GameObject instanceAttachment;
         private tk2dBaseSprite instanceAttachmentSprite;
         private bool m_callbacksInitialized;
-        public static PlayerController CurrentBuyingPlayer;
     }
 }
