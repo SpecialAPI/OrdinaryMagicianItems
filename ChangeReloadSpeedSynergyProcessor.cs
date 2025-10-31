@@ -6,33 +6,30 @@ using UnityEngine;
 
 namespace OrdinaryMagicianItems
 {
-    public class ChangeReloadSpeedSynergyProcessor : MonoBehaviour
+    public class ChangeReloadSpeedSynergyProcessor : GunBehaviour
     {
-        public void Awake()
+        public override void Update()
         {
-            m_gun = GetComponent<Gun>();
-        }
+            if(!PlayerOwner)
+                return;
 
-        public void Update()
-        {
-            bool flag = m_gun && m_gun.OwnerHasSynergy(RequiredSynergy);
-            if (flag && !m_processed)
+            var hasSynergy = PlayerOwner.HasActiveBonusSynergy(RequiredSynergy);
+            if (hasSynergy && !m_processed)
             {
                 m_processed = true;
-                m_cachedReloadTime = m_gun.reloadTime;
-                m_gun.reloadTime = SynergyReloadTime;
+                m_cachedReloadTime = gun.reloadTime;
+                gun.reloadTime = SynergyReloadTime;
             }
-            else if (!flag && m_processed)
+            else if (!hasSynergy && m_processed)
             {
                 m_processed = false;
-                m_gun.reloadTime = m_cachedReloadTime;
+                gun.reloadTime = m_cachedReloadTime;
             }
         }
 
         public float SynergyReloadTime;
         public CustomSynergyType RequiredSynergy;
         private bool m_processed;
-        private Gun m_gun;
         private float m_cachedReloadTime;
     }
 }
