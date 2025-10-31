@@ -10,23 +10,32 @@ using UnityEngine;
 using HarmonyLib;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
+using Dungeonator;
 
 namespace OrdinaryMagicianItems
 {
     [HarmonyPatch]
     public class Broom : PlayerItem
     {
+        public GameObject prefabToAttachToPlayer;
+        private GameObject instanceAttachment;
+        private tk2dBaseSprite instanceAttachmentSprite;
+        private bool m_callbacksInitialized;
+
         public static void Init()
         {
-            string itemName = "Ordinary Broom";
-            string resourceName = "OrdinaryMagicianItems/Resources/broom";
-            GameObject obj = new GameObject(itemName);
+            var itemName = "Ordinary Broom";
+            var resourceName = "OrdinaryMagicianItems/Resources/broom";
+
+            var obj = new GameObject(itemName);
             var item = obj.AddComponent<Broom>();
             ItemBuilder.AddSpriteToObject(itemName, resourceName, obj);
-            string shortDesc = "Aesthetics Matter";
-            string longDesc = "Grants flight until you hop off.\nAllows to steal in plain sight and run for your life.\n\nThis is a completely normal broom with no special properties whatsoever.\nSweeping dust is a broom's most common use, but this one " +
+
+            var shortDesc = "Aesthetics Matter";
+            var longDesc = "Grants flight until you hop off.\nAllows to steal in plain sight and run for your life.\n\nThis is a completely normal broom with no special properties whatsoever.\nSweeping dust is a broom's most common use, but this one " +
                 "in particular is used by a certain Ordinary Magician in order to fly.\nAccording to her, though, she doesn't actually need the broom to fly, and simply uses it during flight for aesthetic purposes.";
             ItemBuilder.SetupItem(item, shortDesc, longDesc, "spapi");
+
             ItemBuilder.SetCooldownType(item, ItemBuilder.CooldownType.Timed, 1);
             item.consumable = false;
             item.quality = ItemQuality.SPECIAL;
@@ -76,7 +85,7 @@ namespace OrdinaryMagicianItems
                     wrapMode = tk2dSpriteAnimationClip.WrapMode.Loop
                 };
             }
-            var sprite = tk2dSprite.AddComponent(broomObj, collection, clips[0].frames[0].spriteId);
+            tk2dSprite.AddComponent(broomObj, collection, clips[0].frames[0].spriteId);
             var animator = broomObj.AddComponent<tk2dSpriteAnimator>();
             var library = animator.Library = broomObj.AddComponent<tk2dSpriteAnimation>();
             library.clips = clips;
@@ -98,37 +107,129 @@ namespace OrdinaryMagicianItems
 
         public void Shoot(PlayerController player, int i)
         {
-            if (player.HasActiveBonusSynergy(Plugin.IncidentResolverKitSynergy)) 
-            {
-                GameObject go = SpawnManager.SpawnProjectile(PickupObjectDatabase.GetById(508).GetComponent<Gun>().DefaultModule.projectiles[0].gameObject, player.specRigidbody.UnitCenter, Quaternion.Euler(0f, 0f, player.FacingDirection));
-                Projectile proj = go.GetComponent<Projectile>();
-                if (proj != null)
-                {
-                    proj.Owner = player;
-                    proj.Shooter = player.specRigidbody;
-                } 
-            }
+            if (!player.HasActiveBonusSynergy(Plugin.IncidentResolverKitSynergy))
+                return;
+
+            var go = SpawnManager.SpawnProjectile(PickupObjectDatabase.GetById(508).GetComponent<Gun>().DefaultModule.projectiles[0].gameObject, player.specRigidbody.UnitCenter, Quaternion.Euler(0f, 0f, player.FacingDirection));
+            var proj = go.GetComponent<Projectile>();
+            if (proj == null)
+                return;
+
+            proj.Owner = player;
+            proj.Shooter = player.specRigidbody;
         }
 
         public void OnCombatEntered()
         {
-            if(PickedUp && LastOwner != null && LastOwner.CurrentRoom != null && LastOwner.CurrentRoom.GetActiveEnemies(Dungeonator.RoomHandler.ActiveEnemyType.All) != null && 
-                LastOwner.HasActiveBonusSynergy(Plugin.IncidentResolverKitSynergy))
+            if (!PickedUp || LastOwner == null || !LastOwner.HasActiveBonusSynergy(Plugin.IncidentResolverKitSynergy))
+                return;
+
+            if (LastOwner.CurrentRoom is not RoomHandler room)
+                return;
+
+            if (room.GetActiveEnemies(RoomHandler.ActiveEnemyType.All) is not List<AIActor> enemies)
+                return;
+
+            foreach (var aiactor in enemies)
             {
-                foreach (AIActor aiactor in LastOwner.CurrentRoom.GetActiveEnemies(Dungeonator.RoomHandler.ActiveEnemyType.RoomClear))
-                {
-                    if (aiactor != null && aiactor.healthHaver != null && aiactor.healthHaver.IsBoss)
-                    {
-                        LootEngine.GivePrefabToPlayer(PickupObjectDatabase.GetById(GlobalItemIds.Blank).gameObject, LastOwner);
-                        LootEngine.GivePrefabToPlayer(PickupObjectDatabase.GetById(GlobalItemIds.SmallHeart).gameObject, LastOwner);
-                        foreach (PlayerItem active in LastOwner.activeItems)
-                        {
-                            active.DidDamage(LastOwner, 100);
-                        }
-                        return;
-                    }
-                }
+                if (aiactor == null || aiactor.healthHaver == null || !aiactor.healthHaver.IsBoss)
+                    continue;
+
+                LootEngine.GivePrefabToPlayer(PickupObjectDatabase.GetById(GlobalItemIds.Blank).gameObject, LastOwner);
+                LootEngine.GivePrefabToPlayer(PickupObjectDatabase.GetById(GlobalItemIds.SmallHeart).gameObject, LastOwner);
+                foreach (PlayerItem active in LastOwner.activeItems)
+                    active.DidDamage(LastOwner, 100);
+
+                break;
             }
+        }
+
+        public override void DoEffect(PlayerController user)
+        {
+            if (GameManager.Instance.CurrentLevelOverrideState == GameManager.LevelOverrideState.END_TIMES)
+                return;
+
+            IsCurrentlyActive = true;
+            user.SetIsFlying(true, "broom", true, false);
+            user.AdditionalCanDodgeRollWhileFlying.SetOverride("broom", true, null);
+            user.SetCapableOfStealing(true, "broom", null);
+            PassiveItem.IncrementFlag(user, typeof(Broom));
+
+            instanceAttachment = user.RegisterAttachedObject(prefabToAttachToPlayer, "", 0f);
+            instanceAttachmentSprite = instanceAttachment.GetComponent<tk2dSprite>();
+        }
+
+        public void LateUpdate()
+        {
+            if (!instanceAttachment || !PickedUp || !LastOwner)
+                return;
+
+            instanceAttachment.transform.position = LastOwner.sprite.WorldCenter + new Vector2(0f, -0.5f);
+            instanceAttachmentSprite.UpdateZDepth();
+        }
+
+        protected void Deactivate(PlayerController user)
+        {
+            IsCurrentlyActive = false;
+            user.SetIsFlying(false, "broom", true, false);
+            user.AdditionalCanDodgeRollWhileFlying.RemoveOverride("broom");
+            user.SetCapableOfStealing(false, "broom", null);
+            PassiveItem.DecrementFlag(user, typeof(Broom));
+
+            if (instanceAttachment != null)
+                user.DeregisterAttachedObject(instanceAttachment, true);
+            instanceAttachmentSprite = null;
+
+            user.stats.RecalculateStats(user, false, false);
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (PickedUp && !m_callbacksInitialized)
+                InitializeCallbacks(LastOwner);
+
+            if (!IsCurrentlyActive)
+                return;
+
+            var suffix = LastOwner.GetBaseAnimationSuffix(false);
+            if (suffix.EndsWith("_right") && LastOwner.sprite.FlipX)
+                suffix = suffix.Substring(0, suffix.LastIndexOf('_')) + "_left";
+
+            if (instanceAttachment != null && instanceAttachmentSprite.spriteAnimator != null && !instanceAttachmentSprite.spriteAnimator.IsPlaying("broom" + suffix))
+                instanceAttachmentSprite.spriteAnimator.Play("broom" + suffix);
+
+            if (GameManager.Instance.CurrentLevelOverrideState == GameManager.LevelOverrideState.END_TIMES || (LastOwner != null && LastOwner.IsDodgeRolling))
+                Deactivate(LastOwner);
+        }
+
+        public override void OnPreDrop(PlayerController user)
+        {
+            if (IsCurrentlyActive)
+                Deactivate(user);
+
+            if (m_callbacksInitialized)
+                DeinitializeCallbacks(user);
+        }
+
+        public override void OnItemSwitched(PlayerController user)
+        {
+            if (IsCurrentlyActive)
+                Deactivate(user);
+        }
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            if(LastOwner != null && m_callbacksInitialized)
+                DeinitializeCallbacks(LastOwner);
+        }
+
+        public override bool CanBeUsed(PlayerController user)
+        {
+            return base.CanBeUsed(user) && !user.IsDodgeRolling;
         }
 
         [HarmonyPatch(typeof(ShopItemController), nameof(ShopItemController.Interact))]
@@ -150,111 +251,11 @@ namespace OrdinaryMagicianItems
             if (player == null || !PassiveItem.IsFlagSetForCharacter(player, typeof(Broom)))
                 return curr;
 
-            if(shopItem.m_baseParentShop == null)
+            if (shopItem.m_baseParentShop == null)
                 return curr;
 
             shopItem.m_baseParentShop.NotifyStealFailed();
             return true;
         }
-
-        public override void DoEffect(PlayerController user)
-        {
-            if (GameManager.Instance.CurrentLevelOverrideState == GameManager.LevelOverrideState.END_TIMES)
-            {
-                return;
-            }
-            IsCurrentlyActive = true;
-            user.SetIsFlying(true, "broom", true, false);
-            user.AdditionalCanDodgeRollWhileFlying.SetOverride("broom", true, null);
-            user.SetCapableOfStealing(true, "broom", null);
-            PassiveItem.IncrementFlag(user, typeof(Broom));
-            instanceAttachment = user.RegisterAttachedObject(prefabToAttachToPlayer, "", 0f);
-            instanceAttachmentSprite = instanceAttachment.GetComponent<tk2dSprite>();
-        }
-
-        public void LateUpdate()
-        {
-            if (instanceAttachment && PickedUp && LastOwner)
-            {
-                instanceAttachment.transform.position = LastOwner.sprite.WorldCenter + new Vector2(0f, -0.5f);
-                instanceAttachmentSprite.UpdateZDepth();
-            }
-        }
-
-        protected void Deactivate(PlayerController user)
-        {
-            IsCurrentlyActive = false;
-            user.SetIsFlying(false, "broom", true, false);
-            user.AdditionalCanDodgeRollWhileFlying.RemoveOverride("broom");
-            user.SetCapableOfStealing(false, "broom", null);
-            PassiveItem.DecrementFlag(user, typeof(Broom));
-            user.DeregisterAttachedObject(instanceAttachment, true);
-            instanceAttachmentSprite = null;
-            user.stats.RecalculateStats(user, false, false);
-        }
-
-        public override void Update()
-        {
-            base.Update();
-            if (PickedUp && !m_callbacksInitialized)
-            {
-                InitializeCallbacks(LastOwner);
-            }
-            if (IsCurrentlyActive)
-            {
-                string suffix = LastOwner.GetBaseAnimationSuffix(false);
-                if (suffix.EndsWith("_right") && LastOwner.sprite.FlipX)
-                {
-                    suffix = suffix.Substring(0, suffix.LastIndexOf('_')) + "_left";
-                }
-                if (instanceAttachment != null && instanceAttachmentSprite.spriteAnimator != null && !instanceAttachmentSprite.spriteAnimator.IsPlaying("broom" + suffix))
-                {
-                    instanceAttachmentSprite.spriteAnimator.Play("broom" + suffix);
-                }
-                if (GameManager.Instance.CurrentLevelOverrideState == GameManager.LevelOverrideState.END_TIMES || (LastOwner != null && LastOwner.IsDodgeRolling))
-                {
-                    Deactivate(LastOwner);
-                }
-            }
-        }
-
-        public override void OnPreDrop(PlayerController user)
-        {
-            if (IsCurrentlyActive)
-            {
-                Deactivate(user);
-            }
-            if (m_callbacksInitialized)
-            {
-                DeinitializeCallbacks(user);
-            }
-        }
-
-        public override void OnItemSwitched(PlayerController user)
-        {
-            if (IsCurrentlyActive)
-            {
-                Deactivate(user);
-            }
-        }
-
-        public override void OnDestroy()
-        {
-            base.OnDestroy();
-            if(LastOwner != null && m_callbacksInitialized)
-            {
-                DeinitializeCallbacks(LastOwner);
-            }
-        }
-
-        public override bool CanBeUsed(PlayerController user)
-        {
-            return base.CanBeUsed(user) && !user.IsDodgeRolling;
-        }
-
-        public GameObject prefabToAttachToPlayer;
-        private GameObject instanceAttachment;
-        private tk2dBaseSprite instanceAttachmentSprite;
-        private bool m_callbacksInitialized;
     }
 }
