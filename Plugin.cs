@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace OrdinaryMagicianItems
 {
-    [BepInPlugin(MOD_GUID, "Ordinary Magician Items", "1.0.7")]
+    [BepInPlugin(MOD_GUID, "Ordinary Magician Items", "1.0.8")]
     [BepInDependency(ETGModMainBehaviour.GUID)]
     [BepInDependency(Alexandria.Alexandria.GUID)]
     public class Plugin : BaseUnityPlugin
